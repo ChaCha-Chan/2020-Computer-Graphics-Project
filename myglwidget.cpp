@@ -75,67 +75,47 @@ void MyGLWidget::set_matrix() {
 	glLoadIdentity();
 	glPushMatrix();
 	GLfloat modelview_matrix[16];
-	glTranslatef(0.0f, 0.0f, -5.0f);
+	//gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	//glTranslatef(0.0f, 0.0f, -5.0f);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 	glPopMatrix();
 }
 
-/*
-void MyGLWidget::set_texture() {
-	unsigned int texture;
-	// texture
-	// ---------
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load image, create texture and generate mipmaps
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-	// The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-	unsigned char* data = stbi_load("C:\\Users\\ThinkPad\\Desktop\\awesomeface1.png", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-}
-*/
 void MyGLWidget::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
-
+	
 	GLfloat vertices[] = {
 		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+		 10.0f, 10.0f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		 10.0f, -10.0f, 0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+		-10.0f, -10.0f, 0.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+		-10.0f, 10.0f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
 	};
+	
+	GLfloat vertices1[] = {
+		// positions          // colors           // texture coords
+		 10.0f,  0.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		 10.0f,  0.0f,10.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+		-10.0f,  0.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+		-10.0f,  0.0f,-10.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+	};
+	
 	GLuint indices[] = {
 	   0, 1, 3, // first triangle
 	   1, 2, 3  // second triangle
 	};
-	//set_texture();
-	char path[] = "C:\\Users\\ThinkPad\\Desktop\\awesomeface1.png";
-	object test(vertices, sizeof(vertices), indices, sizeof(indices), path);
-	test.draw();
+
+	char path[] = "pics\\µØÍ¼.png";
+	//object test(vertices, sizeof(vertices), indices, sizeof(indices), path);
+	//test.draw();
+	object test1(vertices1, sizeof(vertices), indices, sizeof(indices), path);
+	test1.draw();
 }
 
 void MyGLWidget::resizeGL(int width, int height)
