@@ -29,6 +29,8 @@ protected:
     void initializeGL();
     void init_shaders(const char* v_path, const char* f_path);
     void set_matrix();
+    void draw_map();
+    void draw_roadside();
     void set_texture();
     void paintGL();
     void resizeGL(int width, int height);
