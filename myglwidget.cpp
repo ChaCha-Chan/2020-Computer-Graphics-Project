@@ -20,7 +20,6 @@ void MyGLWidget::initializeGL()
 	glViewport(0, 0, width(), height());
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	init_shaders("vertex_shader.txt", "fragment_shader.txt");
-	set_matrix();
 }
 
 void MyGLWidget::init_shaders(const char* v_path, const char* f_path) {
@@ -73,14 +72,124 @@ void MyGLWidget::set_matrix() {
 	//获取并设置modelview矩阵
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glPushMatrix();
 	GLfloat modelview_matrix[16];
 	//gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	//glTranslatef(0.0f, 0.0f, -5.0f);
+	gluLookAt(18.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
+}
+
+void MyGLWidget::draw_map() {
+	GLfloat map_v[] = {
+		// positions          // colors           // texture coords
+		 10.0f,  0.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		 10.0f,  0.0f,10.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+		-10.0f,  0.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+		-10.0f,  0.0f,-10.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+	};
+
+	GLuint map_i[] = {
+	   0, 1, 3, // first triangle
+	   1, 2, 3  // second triangle
+	};
+
+	char path[] = "pics\\地图.png";
+	object map(map_v, sizeof(map_v), map_i, sizeof(map_i), path);
+	map.draw();
+}
+
+void MyGLWidget::r_t_set_matrix(GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, GLfloat t1, GLfloat t2, GLfloat t3) {
+	GLfloat modelview_matrix[16];
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(t1, t2, t3);
+	glRotatef(r0, r1, r2, r3);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 	glPopMatrix();
+}
+void MyGLWidget::draw_roadside() {
+	char path1[] = "pics\\水泥路.png";
+	GLfloat roadside1_v[] = {
+		// positions          // colors           // texture coords
+		 6.0f,  0.2f, 0.0f,  1.0f, 0.0f, 0.0f,   0.0f, 6.0f,
+		 6.0f,  0.2f, 0.1f,  0.0f, 1.0f, 0.0f,   1.0f, 6.0f,
+		 0.0f,  0.2f, 0.1f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
+		 0.0f,  0.2f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+
+		 6.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 6.0f,
+		 6.0f,  0.0f, 0.1f,  0.0f, 1.0f, 0.0f,   0.0f, 6.0f,
+		 0.0f,  0.0f, 0.1f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+		 0.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f,   1.0f, 0.0f
+	};
+	GLuint roadside_i[] = {
+	   0, 1, 3, 
+	   1, 2, 3,
+	   1, 5, 2,
+	   2, 5, 6,
+	   3, 7, 4,
+	   3, 4, 0,
+	   2, 6, 7,
+	   2, 7, 3,
+	   1, 0, 4,
+	   1, 4, 5
+	};
+	object road_side1(roadside1_v, sizeof(roadside1_v), roadside_i, sizeof(roadside_i), path1);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 6.4f);
+	road_side1.draw();
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, -6.5f);
+	road_side1.draw();
+
+	GLfloat roadside2_v[] = {
+		// positions          // colors           // texture coords
+		 13.0f,  0.2f, 0.0f,  1.0f, 0.0f, 0.0f,   0.0f, 13.0f,
+		 13.0f,  0.2f, 0.1f,  0.0f, 1.0f, 0.0f,   1.0f, 13.0f,
+		 0.0f,  0.2f, 0.1f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
+		 0.0f,  0.2f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+
+		 13.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 13.0f,
+		 13.0f,  0.0f, 0.1f,  0.0f, 1.0f, 0.0f,   0.0f, 13.0f,
+		 0.0f,  0.0f, 0.1f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+		 0.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f,   1.0f, 0.0f
+	};
+	object road_side2(roadside2_v, sizeof(roadside2_v), roadside_i, sizeof(roadside_i), path1);
+	r_t_set_matrix(90.0f, 0.0f, 1.0f, 0.0f, 6.5f, 0.0f, 6.5f);
+	road_side2.draw();
+
+	GLfloat roadside3_v[] = {
+		// positions          // colors           // texture coords
+		 7.1f,  0.2f, 0.0f,  1.0f, 0.0f, 0.0f,   0.0f, 7.1f,
+		 7.1f,  0.2f, 0.1f,  0.0f, 1.0f, 0.0f,   1.0f, 7.1f,
+		 0.0f,  0.2f, 0.1f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
+		 0.0f,  0.2f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+
+		 7.1f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 7.1f,
+		 7.1f,  0.0f, 0.1f,  0.0f, 1.0f, 0.0f,   0.0f, 7.1f,
+		 0.0f,  0.0f, 0.1f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+		 0.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f,   1.0f, 0.0f
+	};
+	object road_side3(roadside3_v, sizeof(roadside3_v), roadside_i, sizeof(roadside_i), path1);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 7.4f);
+	road_side3.draw();
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, -7.5f);
+	road_side3.draw();
+
+	GLfloat roadside4_v[] = {
+		// positions          // colors           // texture coords
+		 15.0f,  0.2f, 0.0f,  1.0f, 0.0f, 0.0f,   0.0f, 15.0f,
+		 15.0f,  0.2f, 0.1f,  0.0f, 1.0f, 0.0f,   1.0f, 15.0f,
+		 0.0f,  0.2f, 0.1f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
+		 0.0f,  0.2f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+
+		 15.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 15.0f,
+		 15.0f,  0.0f, 0.1f,  0.0f, 1.0f, 0.0f,   0.0f, 15.0f,
+		 0.0f,  0.0f, 0.1f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+		 0.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f,   1.0f, 0.0f
+	};
+	object road_side4(roadside4_v, sizeof(roadside4_v), roadside_i, sizeof(roadside_i), path1);
+	r_t_set_matrix(90.0f, 0.0f, 1.0f, 0.0f, 7.5f, 0.0f, 7.5f);
+	road_side4.draw();
+
 }
 
 void MyGLWidget::paintGL()
@@ -89,33 +198,11 @@ void MyGLWidget::paintGL()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
-	
-	GLfloat vertices[] = {
-		// positions          // colors           // texture coords
-		 10.0f, 10.0f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		 10.0f, -10.0f, 0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-		-10.0f, -10.0f, 0.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-10.0f, 10.0f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
-	};
-	
-	GLfloat vertices1[] = {
-		// positions          // colors           // texture coords
-		 10.0f,  0.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		 10.0f,  0.0f,10.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-		-10.0f,  0.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-10.0f,  0.0f,-10.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
-	};
-	
-	GLuint indices[] = {
-	   0, 1, 3, // first triangle
-	   1, 2, 3  // second triangle
-	};
 
-	char path[] = "pics\\地图.png";
-	//object test(vertices, sizeof(vertices), indices, sizeof(indices), path);
-	//test.draw();
-	object test1(vertices1, sizeof(vertices), indices, sizeof(indices), path);
-	test1.draw();
+	set_matrix();
+
+	draw_map();
+	draw_roadside();
 }
 
 void MyGLWidget::resizeGL(int width, int height)
