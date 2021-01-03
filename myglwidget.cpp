@@ -643,7 +643,7 @@ void MyGLWidget::draw_p(GLuint number) {
 	delete[] face_i;
 }
 
-void MyGLWidget::turn_p(GLuint number, GLint dir) {
+void MyGLWidget::turn_p(GLuint number, GLint dir, GLfloat x, GLfloat z) {
 	static GLfloat angle = 0.0f;
 	GLfloat start = (dir - 2) * 90.0f;
 	GLfloat offset = 0.20f;
@@ -656,6 +656,7 @@ void MyGLWidget::turn_p(GLuint number, GLint dir) {
 		glTranslatef(-offset, 0.0f, -offset);
 	}
 	glPushMatrix();
+	glTranslatef(x, 0.0f, z);
 	glRotatef(start + angle, 0.0f, 1.0f, 0.0f);
 	draw_p(number);
 	glPopMatrix();
@@ -708,7 +709,8 @@ void MyGLWidget::paintGL()
 	draw_roadside();
 	draw_buildings();
 	draw_gate();
-	move_p(2, 2, 0, 0);
+	//turn_p(2, 1, 1, 1);
+	//move_p(2, 2, 1, 1);
 }
 
 void MyGLWidget::resizeGL(int width, int height)
