@@ -77,7 +77,7 @@ void MyGLWidget::set_matrix() {
 	glLoadIdentity();
 	GLfloat modelview_matrix[16];
 	//gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	gluLookAt(0.0f, 5.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(3.0f, 1.5f, 7.0f, 0.0f, 0.0f, 7.0f, 0.0f, 1.0f, 0.0f);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 
@@ -110,6 +110,28 @@ void MyGLWidget::r_t_set_matrix(GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, 
 	glPushMatrix();
 	glTranslatef(t1, t2, t3);
 	glRotatef(r0, r1, r2, r3);
+	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
+	glPopMatrix();
+}
+void MyGLWidget::s_r_t_set_matrix(GLfloat s1, GLfloat s2, GLfloat s3, GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, GLfloat t1, GLfloat t2, GLfloat t3) {
+	GLfloat modelview_matrix[16];
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(t1, t2, t3);
+	glRotatef(r0, r1, r2, r3);
+	glScalef(s1, s2, s3);
+	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
+	glPopMatrix();
+}
+void MyGLWidget::r_s_r_set_matrix(GLfloat s1, GLfloat s2, GLfloat s3, GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3) {
+	GLfloat modelview_matrix[16];
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glRotatef(r0, r1, r2, r3);
+	glScalef(s1, s2, s3);
+	glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 	glPopMatrix();
@@ -198,20 +220,21 @@ void MyGLWidget::draw_roadside() {
 
 }
 
+//初始法线得多算两个点
 void MyGLWidget::get_cylinder_v_i(GLfloat r, GLfloat h, GLuint u_num, GLfloat* temp_v, GLuint* temp_i){
-	for (int i = 0; i < 2 * u_num; i++) {
-		if (i < u_num) {
+	for (int i = 0; i < 2 * u_num + 2; i++) {
+		if (i <= u_num) {
 			temp_v[i * 8] = r * cos(PI * i * 2 / u_num);
 			temp_v[i * 8 + 1] = h;
-			temp_v[i * 8 + 2] = r * sin(PI * i * 2 / u_num);
-			temp_v[i * 8 + 6] = 1.0f * i / u_num;
+			temp_v[i * 8 + 2] = -r * sin(PI * i * 2 / u_num);
+			temp_v[i * 8 + 6] = 1.0f * (double)i / u_num;
 			temp_v[i * 8 + 7] = 1.0f;
 		}
 		else {
-			temp_v[i * 8] = r * cos(PI * (i - u_num) * 2 / u_num);
+			temp_v[i * 8] = r * cos(PI * (i - u_num - 1) * 2 / u_num);
 			temp_v[i * 8 + 1] = 0.0f;
-			temp_v[i * 8 + 2] = r * sin(PI * (i - u_num) * 2 / u_num);
-			temp_v[i * 8 + 6] = 1.0f * (i - u_num) / u_num;
+			temp_v[i * 8 + 2] = -r * sin(PI * (i - u_num - 1) * 2 / u_num);
+			temp_v[i * 8 + 6] = 1.0f * (double)(i - u_num - 1) / u_num;
 			temp_v[i * 8 + 7] = 0.0f;
 		}
 		temp_v[i * 8 + 3] = 1.0f;
@@ -219,22 +242,17 @@ void MyGLWidget::get_cylinder_v_i(GLfloat r, GLfloat h, GLuint u_num, GLfloat* t
 		temp_v[i * 8 + 5] = 1.0f;
 	}
 	for (int i = 0; i < 6 * u_num; i += 6) {
-		if (i == 6 * u_num - 6) {
-			temp_i[i + 1] = 0;
-		}
-		else {
-			temp_i[i + 1] = i / 6 + 1;
-		}
 		temp_i[i] = i / 6;
-		temp_i[i + 2] = temp_i[i] + u_num;
+		temp_i[i + 1] = i / 6 + 1;
+		temp_i[i + 2] = temp_i[i] + u_num + 1;
 		temp_i[i + 3] = temp_i[i + 1];
-		temp_i[i + 4] = temp_i[i + 1] + u_num;
+		temp_i[i + 4] = temp_i[i + 1] + u_num + 1;
 		temp_i[i + 5] = temp_i[i + 2];	
 	}
 }
-//由于多了个圆心，所以应该有u_num + 1个点
+//初始点得多算一个点，由于多了个圆心，所以应该有u_num + 1 + 1 个点
 void MyGLWidget::get_cycle_v_i(GLfloat r, GLuint u_num, GLfloat* temp_v, GLuint* temp_i) {
-	for (int i = 0; i < u_num; i++) {
+	for (int i = 0; i <= u_num; i++) {
 		temp_v[i * 8] = r * cos(PI * i * 2 / u_num);
 		temp_v[i * 8 + 1] = 0.0f;
 		temp_v[i * 8 + 2] = - r * sin(PI * i * 2 / u_num);
@@ -245,46 +263,155 @@ void MyGLWidget::get_cycle_v_i(GLfloat r, GLuint u_num, GLfloat* temp_v, GLuint*
 		temp_v[i * 8 + 7] = sin(PI * i * 2 / u_num) / 2 + 0.5f;
 	}
 	//圆心
-	temp_v[u_num * 8] = 0.0f;
-	temp_v[u_num * 8 + 1] = 0.0f;
-	temp_v[u_num * 8 + 2] = 0.0f;
-	temp_v[u_num * 8 + 3] = 1.0f;
-	temp_v[u_num * 8 + 4] = 1.0f;
-	temp_v[u_num * 8 + 5] = 1.0f;
-	temp_v[u_num * 8 + 6] = 0.5f;
-	temp_v[u_num * 8 + 7] = 0.5f;
+	temp_v[(u_num + 1) * 8] = 0.0f;
+	temp_v[(u_num + 1) * 8 + 1] = 0.0f;
+	temp_v[(u_num + 1) * 8 + 2] = 0.0f;
+	temp_v[(u_num + 1) * 8 + 3] = 1.0f;
+	temp_v[(u_num + 1) * 8 + 4] = 1.0f;
+	temp_v[(u_num + 1) * 8 + 5] = 1.0f;
+	temp_v[(u_num + 1) * 8 + 6] = 0.5f;
+	temp_v[(u_num + 1) * 8 + 7] = 0.5f;
 
 	for (int i = 0; i < u_num; i++) {
-		if (i == u_num - 1) {
-			temp_i[i * 3 + 1] = 0;
-		}
-		else {
-			temp_i[i * 3 + 1] = i + 1;
-		}
 		temp_i[i * 3] = i;
-		temp_i[i * 3 + 2] = u_num;
+		temp_i[i * 3 + 1] = i + 1;
+		temp_i[i * 3 + 2] = u_num + 1;
 	}
 }
 
 void MyGLWidget::draw_gate() {
 	static bool open_flag = FALSE;
+	static bool openning_flag = TRUE;
+	static bool close_flag = FALSE;
+	static bool closing_flag = FALSE;
 	//估计要有四个状态 正在开 正在关 开 关
 	//闸机两侧
-	int u_num = 4;
-	GLfloat* side_v = new GLfloat[2 * u_num * 8];
-	GLuint* side_i = new GLuint[6 * u_num];
-	get_cylinder_v_i(0.3f, 0.6f, 4, side_v, side_i);
-	char path1[] = "pics\\水泥路.png";
-	object side1(side_v, sizeof(GLfloat) * 2 * u_num * 8, side_i, sizeof(GLuint) * 6 * u_num, path1);
-	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, 0.0f);
-	//side1.draw();
+	int u_num = 16;
+	GLfloat* side_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* side_i = new GLuint[6 * u_num ];
+	get_cylinder_v_i(0.15f, 0.6f, u_num, side_v, side_i);
+	char path1[] = "pics\\闸机侧面.png";
+	object side1(side_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, side_i, sizeof(GLuint) * 6 * u_num , path1);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 6.2f);
+	side1.draw();
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 7.7f);
+	side1.draw();
 
-	GLfloat* top_v = new GLfloat[(u_num + 1) * 8];
+	GLfloat* top_v = new GLfloat[(u_num + 2) * 8];
 	GLuint* top_i = new GLuint[3 * u_num];
-	get_cycle_v_i(0.3f, 4, top_v, top_i);
-	object top1(top_v, sizeof(GLfloat) * (u_num + 1) * 8, top_i, sizeof(GLuint) * 3 * u_num, path1);
-	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	get_cycle_v_i(0.15f, u_num, top_v, top_i);
+	char path2[] = "pics\\闸机上面.png";
+	object top1(top_v, sizeof(GLfloat) * (u_num + 2) * 8, top_i, sizeof(GLuint) * 3 * u_num, path2);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.6f, 6.2f);
 	top1.draw();
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.6f, 7.7f);
+	top1.draw();
+
+	//闸机屏幕
+	char path3[] = "pics\\闸机屏幕.png";
+	object side2(side_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, side_i, sizeof(GLuint) * 6 * u_num, path3);
+	s_r_t_set_matrix(0.2f, 0.5f, 0.8f, 180.0f, 0.0f, 1.0f, 0.0f, 1.5f, 0.6f, 6.2f);
+	side2.draw();
+	s_r_t_set_matrix(0.2f, 1.0f, 0.8f, 180.0f, 0.0f, 1.0f, 0.0f, 1.5f, 0.9f, 6.2f);
+	top1.draw();
+
+	//闸机门
+	int u_num1 = 4;
+	GLfloat* gate_v = new GLfloat[2 * (u_num1 + 1) * 8];
+	GLuint* gate_i = new GLuint[6 * u_num1];
+	get_cylinder_v_i(0.4f, 0.4f, u_num1, gate_v, gate_i);
+	char path4[] = "pics\\闸机门.png";
+	object gate(gate_v, sizeof(GLfloat) * 2 * (u_num1 + 1) * 8, gate_i, sizeof(GLuint) * 6 * u_num1, path4);
+	static GLfloat angle = 0.0f;
+	set_alpha(0.5f);
+	if (close_flag) {
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 6.6f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 7.3f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+	}
+	else if (openning_flag) {
+		angle += 10.0f;
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 6.6f);
+		glTranslatef(0.02f, 0.0f, -0.2f);
+		glRotatef(-angle, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.02f, 0.0f, 0.2f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 7.3f);
+		glTranslatef(0.02f, 0.0f, 0.2f);
+		glRotatef(angle, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.02f, 0.0f, -0.2f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+
+		if (abs(angle - 90.0f) < 1e-4) {
+			openning_flag = FALSE;
+			open_flag = TRUE;
+		}
+	}
+	else if (open_flag) {
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 6.6f);
+		glTranslatef(0.02f, 0.0f, -0.2f);
+		glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.02f, 0.0f, 0.2f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 7.3f);
+		glTranslatef(0.02f, 0.0f, 0.2f);
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.02f, 0.0f, -0.2f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+	}
+	else if(closing_flag){
+		angle -= 10.0f;
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 6.6f);
+		glTranslatef(0.02f, 0.0f, -0.2f);
+		glRotatef(-angle, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.02f, 0.0f, 0.2f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(1.5f, 0.2f, 7.3f);
+		glTranslatef(0.02f, 0.0f, 0.2f);
+		glRotatef(angle, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.02f, 0.0f, -0.2f);
+		r_s_r_set_matrix(1.0f, 1.0f, 0.1f, -90.0f, 0.0f, 1.0f, 0.0f);
+		gate.draw();
+		glPopMatrix();
+
+		if (abs(angle - 0.0f) < 1e-4) {
+			closing_flag = FALSE;
+			close_flag = TRUE;
+		}
+	}
+	set_alpha(1.0f);
+
+	delete[] side_v;
+	delete[] side_i;
+	delete[] top_v;
+	delete[] top_i;
 }
 
 void MyGLWidget::paintGL()
