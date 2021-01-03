@@ -77,7 +77,7 @@ void MyGLWidget::set_matrix() {
 	glLoadIdentity();
 	GLfloat modelview_matrix[16];
 	//gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	gluLookAt(0.0f, 15.5f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(-15.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 
@@ -99,9 +99,19 @@ void MyGLWidget::draw_map() {
 	   1, 2, 3  // second triangle
 	};
 
-	char path[] = "pics\\地图.png";
-	object map(map_v, sizeof(map_v), map_i, sizeof(map_i), path);
+	static GLuint index = 0;
+
+	char path1[] = "pics\\地图1.png";
+	char path2[] = "pics\\地图2.png";
+	char path3[] = "pics\\地图3.png";
+	char path4[] = "pics\\地图4.png";
+	char path5[] = "pics\\地图5.png";
+	char* path[] = { path1, path2, path3, path4, path5 };
+
+	object map(map_v, sizeof(map_v), map_i, sizeof(map_i), path[index]);
 	map.draw();
+	index += 1;
+	if (index == 5)index = 0;
 }
 
 void MyGLWidget::r_t_set_matrix(GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, GLfloat t1, GLfloat t2, GLfloat t3) {
@@ -280,116 +290,6 @@ void MyGLWidget::get_cycle_v_i(GLfloat r, GLuint u_num, GLfloat* temp_v, GLuint*
 	}
 }
 
-void MyGLWidget::draw_skybox() {
-	GLfloat skybox_top_v[] = {
-		// positions          // colors           // texture coords
-		 10.0f,  10.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		 10.0f,  10.0f,10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // bottom right
-		-10.0f,  10.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-10.0f,  10.0f,-10.0f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f  // top left 
-	};
-
-	GLuint skybox_top_i[] = {
-	   3, 1, 0, // first triangle
-	   3, 2, 1  // second triangle
-	};
-
-	char path_top[] = "pics\\skybox_top.png";
-	object skybox_top(skybox_top_v, sizeof(skybox_top_v), skybox_top_i, sizeof(skybox_top_i), path_top);
-	skybox_top.draw();
-
-	GLfloat skybox_side_v[] = {
-		// positions          // colors           // texture coords
-		-10.0f,  10.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-		-10.0f,  0.0f,-10.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-		-10.0f,  0.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-10.0f,  10.0f,10.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
-	};
-
-	GLuint skybox_side_i[] = {
-	   0, 1, 3, // first triangle
-	   1, 2, 3  // second triangle
-	};
-
-	char path_front[] = "pics\\skybox_front.png";
-	object skybox_front(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_front);
-	r_t_set_matrix(0.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	skybox_front.draw();
-
-	char path_right[] = "pics\\skybox_right.png";
-	object skybox_right(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_right);
-	r_t_set_matrix(-90.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	skybox_right.draw();
-
-	char path_back[] = "pics\\skybox_back.png";
-	object skybox_back(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_back);
-	r_t_set_matrix(180.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	skybox_back.draw();
-
-	char path_left[] = "pics\\skybox_left.png";
-	object skybox_left(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_left);
-	r_t_set_matrix(90.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	skybox_left.draw();
-}
-
-void MyGLWidget::draw_plate(GLint target_num, GLfloat x, GLfloat y, GLfloat z, GLint direction)
-{
-	GLfloat d[] = {0.0f,-90.0f,180.0f,90.0f,0.0f};
-	GLfloat cam_angle = d[direction];
-	static bool is_running = true;
-	GLfloat target_angle = 30.0f-target_num*60.0f;
-	static GLfloat plate_angle = 30.0f;
-	if (is_running)
-	{
-		if (plate_angle <= target_angle) is_running = false;
-		plate_angle-=10.0f;
-	}
-	GLint u_num = 180;
-	GLfloat r = 1.0f;
-	GLfloat* plate_v = (GLfloat*)malloc(sizeof(GLfloat) * (u_num + 2) * 8);
-	GLuint* plate_i = (GLuint*)malloc(sizeof(GLuint) * u_num * 3);
-	get_cycle_v_i(r, u_num, plate_v, plate_i);
-	char path_plate[] = "pics\\plate.png";
-	object plate(plate_v, sizeof(GLfloat) * (u_num + 2) * 8, plate_i, sizeof(GLuint) * u_num * 3, path_plate);
-
-	GLfloat modelview_matrix[16];
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glTranslatef(x, y, z);
-	glRotatef(cam_angle, 0.0f, 10.0f, 0.0f);
-	glTranslatef(-0.1f, 0.0f, 0.0f);
-	glRotatef(-90.0f, 0.0f, 0.0f, 10.0f);
-	glRotatef(plate_angle, 0.0f, 10.0f, 0.0f);
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
-	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
-	glPopMatrix();
-	plate.draw();
-
-	GLfloat arrow_v[] = {
-		// positions          // colors           // texture coords
-		 0.0f,  -r, r / 6.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-		 0.0f,  -r, r / -6.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-		 0.0f,  r / 6.0f - r , 0.0f,  1.0f, 1.0f, 1.0f,   0.5f, 1.0f,
-	};
-
-	GLuint arrow_i[] = {
-		0,1,2
-	};
-
-	char path_arrow[] = "pics\\arrow.png";
-	object arrow(arrow_v, sizeof(arrow_v), arrow_i, sizeof(arrow_i), path_arrow);
-
-	GLfloat modelview_matrix_arrow[16];
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glTranslatef(x, y, z);
-	glRotatef(cam_angle, 0.0f, 10.0f, 0.0f);
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix_arrow);
-	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix_arrow);
-	glPopMatrix();
-	arrow.draw();
-}
-
 void MyGLWidget::draw_gate() {
 	static bool open_flag1 = FALSE;
 	static bool openning_flag1 = TRUE;
@@ -459,6 +359,7 @@ void MyGLWidget::draw_gate() {
 	static GLfloat angle1 = 0.0f;
 	static GLfloat angle2 = 0.0f;
 	set_alpha(0.5f);
+	glMatrixMode(GL_MODELVIEW);
 	//闸机1
 	if (close_flag1) {
 		glPushMatrix();
@@ -631,6 +532,8 @@ void MyGLWidget::draw_gate() {
 	delete[] side_i;
 	delete[] top_v;
 	delete[] top_i;
+	delete[] gate_v;
+	delete[] gate_i;
 }
 
 void MyGLWidget::draw_buildings() {
@@ -642,11 +545,150 @@ void MyGLWidget::draw_buildings() {
 	GLuint* top_i = new GLuint[3 * u_num];
 	get_cycle_v_i(1.0f, u_num, top_v, top_i);
 
+	//超算
+	GLfloat hpc_v[] = {
+		-2.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+		-2.0f,  0.0f, 1.0f,  1.0f, 1.0f, 1.0f,   0.17f, 0.0f,
+		-1.2f,  0.0f, 2.0f,  1.0f, 1.0f, 1.0f,   0.33f, 0.0f,
+		 1.2f,  0.0f, 2.0f,  1.0f, 1.0f, 1.0f,   0.50f, 0.0f,
+		 2.0f,  0.0f, 1.0f,  1.0f, 1.0f, 1.0f,   0.67f, 0.0f,
+		 2.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,   0.83f, 0.0f,
+		-2.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
+		-2.0f,  2.0f, 0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+		-2.0f,  2.0f, 1.0f,  1.0f, 1.0f, 1.0f,   0.17f, 1.0f,
+		-1.2f,  2.0f, 2.0f,  1.0f, 1.0f, 1.0f,   0.33f, 1.0f,
+		 1.2f,  2.0f, 2.0f,  1.0f, 1.0f, 1.0f,   0.50f, 1.0f,
+		 2.0f,  2.0f, 1.0f,  1.0f, 1.0f, 1.0f,   0.67f, 1.0f,
+		 2.0f,  2.0f, 0.0f,  1.0f, 1.0f, 1.0f,   0.83f, 1.0f,
+		-2.0f,  2.0f, 0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f
+	};
+	GLuint hpc_i[] = {
+		0, 1, 7,
+		1, 8, 7,
+		1, 2, 8,
+		2, 9, 8,
+		2, 3, 9,
+		3, 10, 9,
+		3, 4, 10,
+		4, 11, 10,
+		4, 5, 11,
+		5, 12, 11,
+		5, 6, 12,
+		6, 13, 12
+	};
+	GLfloat hpc_top_v[] = {
+	-2.0f,  2.0f, 0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+	-2.0f,  2.0f, 1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.5f,
+	-1.2f,  2.0f, 2.0f,  1.0f, 1.0f, 1.0f,   0.25f, 0.0f,
+	 1.2f,  2.0f, 2.0f,  1.0f, 1.0f, 1.0f,   0.75f, 0.0f,
+	 2.0f,  2.0f, 1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.5f,
+	 2.0f,  2.0f, 0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+	};
+	GLuint hpc_top_i[] = {
+		0, 5, 1,
+		1, 5, 2,
+		2, 5, 3,
+		3, 5, 4
+	};
+	char path_hpc1[] = "pics\\超算.png";
+	object hpc1(hpc_v, sizeof(hpc_v), hpc_i, sizeof(hpc_i), path_hpc1);
+	char path_hpc2[] = "pics\\超算上面.png";
+	object hpc2(hpc_top_v, sizeof(hpc_top_v), hpc_top_i, sizeof(hpc_top_i), path_hpc2);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(-2.8f, 0.0f, 0.8f);
+	glRotatef(-135.0f, 0.0f, 1.0f, 0.0f);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	hpc1.draw();
+	hpc2.draw();
+	glPopMatrix();
+
+
+	//图书馆
+	char path_lib2[] = "pics\\图书馆2.png";
+	object lib2(building_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, building_i, sizeof(GLuint) * 6 * u_num, path_lib2);
+	char path_lib3[] = "pics\\图书馆3.png";
+	object lib3(building_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, building_i, sizeof(GLuint) * 6 * u_num, path_lib3);
+	char path_lib4[] = "pics\\图书馆4.png";
+	object lib4(building_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, building_i, sizeof(GLuint) * 6 * u_num, path_lib4);
+	GLfloat lib1_v[] = {
+		-1.2f,  0.2f, 2.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+		-0.4f,  0.2f, 1.8f,  1.0f, 1.0f, 1.0f,   0.33f, 0.0f,
+		-1.2f,  0.2f, 2.0f,  1.0f, 1.0f, 1.0f,   0.66f, 0.0f,
+		-1.2f,  0.2f, 2.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+		-1.2f,  1.4f, 2.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+		-0.4f,  1.4f, 1.8f,  1.0f, 1.0f, 1.0f,   0.33f, 1.0f,
+		-1.2f,  1.4f, 2.0f,  1.0f, 1.0f, 1.0f,   0.66f, 1.0f,
+		-1.2f,  1.4f, 2.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f
+	};
+	GLuint lib1_i[] = {
+		0, 1, 4,
+		1, 5, 4,
+		1, 2, 5,
+		2, 6, 5,
+		2, 3, 6,
+		3, 7, 6
+	};
+	char path_lib1[] = "pics\\图书馆1.png";
+	object lib1(lib1_v, sizeof(lib1_v), lib1_i, sizeof(lib1_i) , path_lib1);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(-4.0f,0.0f, 4.0f);
+	//白色部分
+	s_r_t_set_matrix(1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	lib1.draw();
+	glPushMatrix();
+	glScalef(-1.0f, 1.0f, 1.0f);
+	s_r_t_set_matrix(1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	lib1.draw();
+	glPopMatrix();
+	//棕色部分
+	r_s_r_set_matrix(2.0f, 1.6f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib2.draw();
+
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, 1.0f);
+	r_s_r_set_matrix(2.0f, 0.2f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib2.draw();
+	glTranslatef(0.0f, 1.4f, 0.0f);
+	r_s_r_set_matrix(2.0f, 0.2f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib2.draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-1.2f, 0.0f, 1.0f);
+	r_s_r_set_matrix(0.2f, 1.6f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib2.draw();
+	glTranslatef(2.4f, 0.0f, 0.0f);
+	r_s_r_set_matrix(0.2f, 1.6f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib2.draw();
+	glPopMatrix();
+
+	//玻璃部分
+	glPushMatrix();
+	glTranslatef(0.0f, 0.1f, 1.6f);
+	r_s_r_set_matrix(0.5f, 1.4f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib3.draw();
+	glPopMatrix();
+	//柱子部分
+	glPushMatrix();
+	glTranslatef(-0.6f, 0.1f, 2.0f);
+	r_s_r_set_matrix(0.07f, 1.4f, 0.07f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib4.draw();
+	glTranslatef(1.2f, 0.0f, 0.0f);
+	r_s_r_set_matrix(0.07f, 1.4f, 0.07f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib4.draw();
+	glPopMatrix();
+	glPopMatrix();
+
+	//宿舍
 	char path_zhishan[] = "pics\\至善.png";
 	object building_zhishan(building_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, building_i, sizeof(GLuint) * 6 * u_num, path_zhishan);
 	char path_zhishantop[] = "pics\\至善楼顶.png";
 	object top_zhishan(top_v, sizeof(GLfloat) * (u_num + 2) * 8, top_i, sizeof(GLuint) * 3 * u_num, path_zhishantop);
 	//至善
+	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glTranslatef(1.2f, 0.0f, -4.3f);
 	r_s_r_set_matrix(2.0f, 2.3f, 0.5f, -90.0f, 0.0f, 1.0f, 0.0f);
@@ -694,7 +736,351 @@ void MyGLWidget::draw_buildings() {
 	r_s_r_set_matrix(2.0f, 2.3f, 0.5f, -90.0f, 0.0f, 1.0f, 0.0f);
 	top_zhishan.draw();
 	glPopMatrix();
+
+
+	delete[] building_v;
+	delete[] building_i;
+	delete[] top_v;
+	delete[] top_i;
 }
+
+void MyGLWidget::draw_p(GLuint number) {
+	char *path1, *path2;
+	if (number == 1) {
+		char p1[] = "pics\\p1纯色.png";
+		char p2[] = "pics\\p1.png";
+		path1 = p1, path2 = p2;
+	}
+	else {
+		char p1[] = "pics\\p2纯色.png";
+		char p2[] = "pics\\p2.png";
+		path1 = p1, path2 = p2;
+	}
+	int u_num = 16;
+	GLfloat* side_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* side_i = new GLuint[6 * u_num];
+	GLfloat* face_v = new GLfloat[(u_num + 2) * 8];
+	GLuint* face_i = new GLuint[3 * u_num];
+
+	get_cylinder_v_i(0.25f, 0.05f, u_num, side_v, side_i);
+	object side1(side_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, side_i, sizeof(GLuint) * 6 * u_num, path1);
+	get_cycle_v_i(0.25f, u_num, face_v, face_i);
+	object top1(face_v, sizeof(GLfloat) * (u_num + 2) * 8, face_i, sizeof(GLuint) * 3 * u_num, path2);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.8f, 0.0f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.025f, 0.0f);
+	side1.draw();
+	r_t_set_matrix(180.0f, 0.0f, 0.0f, 1.0f, 0.0f, -0.025f, 0.0f);
+	top1.draw();
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.025f, 0.0f);
+	top1.draw();
+	glPopMatrix();
+
+	s_r_t_set_matrix(0.08f, 12.0f, 0.08f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	side1.draw();
+	s_r_t_set_matrix(0.4f, 2.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	side1.draw();
+	s_r_t_set_matrix(0.4f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.0f);
+	top1.draw();
+
+	delete[] side_v;
+	delete[] side_i;
+	delete[] face_v;
+	delete[] face_i;
+}
+
+void MyGLWidget::turn_p(GLuint number, GLint dir, GLfloat x, GLfloat z) {
+	static GLfloat angle = 0.0f;
+	GLfloat start = (dir - 2) * 90.0f;
+	GLfloat offset = 0.20f;
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	if (number == 1) {
+		glTranslatef(offset, 0.0f, offset);
+	}
+	else {
+		glTranslatef(-offset, 0.0f, -offset);
+	}
+	glPushMatrix();
+	glTranslatef(x, 0.0f, z);
+	glRotatef(start + angle, 0.0f, 1.0f, 0.0f);
+	draw_p(number);
+	glPopMatrix();
+	glPopMatrix();
+	angle += 90.0f / 5;
+	if (abs(angle - 90.0f) < 1e-3) {
+		angle = 0.0f;
+	}
+}
+
+void MyGLWidget::move_p(GLuint number, GLint dir, GLfloat x, GLfloat z) {
+	static GLfloat step = 0.0f;
+	GLfloat angle = (dir - 2) * 90.0f;
+	GLfloat height = - step * step + step;
+	GLfloat offset = 0.20f;
+	GLfloat x_dir[5] = { 0.0f, -1.0f, 0.0f, 1.0f, 0.0f};
+	GLfloat z_dir[5] = { 0.0f,  0.0f, 1.0f, 0.0f, -1.0f};
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	if (number == 1) {
+		glTranslatef(offset, 0.0f, offset);
+	}
+	else {
+		glTranslatef(-offset, 0.0f, -offset);
+	}
+	glPushMatrix();
+	glTranslatef(x + x_dir[dir] * step, height, z + z_dir[dir] * step);
+	glRotatef(angle, 0.0f, 1.0f, 0.0f);
+	draw_p(number);
+	glPopMatrix();
+	glPopMatrix();
+	step += 0.20f;
+	if (abs(step - 1.0f) < 1e-3) {
+		step = 0.0f;
+	}
+}
+
+
+void MyGLWidget::draw_bush()
+{
+	int u_num = 8;
+	GLfloat* bush_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* bush_i = new GLuint[6 * u_num];
+	get_cylinder_v_i(1.0f, 1.0f, u_num, bush_v, bush_i);
+	GLfloat* top_v = new GLfloat[(u_num + 2) * 8];
+	GLuint* top_i = new GLuint[3 * u_num];
+	get_cycle_v_i(1.0f, u_num, top_v, top_i);
+
+	char path_bush[] = "pics\\bush.png";
+	object bush(bush_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, bush_i, sizeof(GLuint) * 6 * u_num, path_bush);
+	char path_bushtop[] = "pics\\bush.png";
+	object top_bush(top_v, sizeof(GLfloat) * (u_num + 2) * 8, top_i, sizeof(GLuint) * 3 * u_num, path_bushtop);
+	
+	GLfloat pos[] = {
+						2.1f, 4.5f,
+						3.0f, 4.5f,
+						3.9f, 4.5f,
+						4.8f, 4.5f,
+						2.2f, -5.6f,
+						2.2f, -4.7f,
+						2.2f, -3.8f,
+						2.2f, -2.9f,
+						4.2f, -2.9f,
+						4.2f, -2.9f,
+						4.2f, -2.9f,
+						4.2f, -2.9f,
+						-6.0f, 0.0f,
+						-6.0f, -3.0f,
+						-6.0f, -4.0f,
+						-6.0f, -5.0f,
+						-6.0f, 1.0f,
+						-6.0f, 2.0f,
+						-6.0f, 3.0f,
+						-6.0f, 4.0f,
+						-6.0f, 5.0f
+	};
+
+	for (int i = 0; i < sizeof(pos) / sizeof(int) / 2;i++)
+	{
+		GLfloat x = pos[2 * i];
+		GLfloat z = pos[2 * i + 1];
+		glPushMatrix();
+		glTranslatef(x, 0.0f, z);
+		r_s_r_set_matrix(0.5f, 0.5f, 0.5f, -22.5f, 0.0f, 1.0f, 0.0f);
+		bush.draw();
+		glTranslatef(0.0f, 0.5f, 0.0f);
+		r_s_r_set_matrix(0.5f, 0.5f, 0.5f, -22.5f, 0.0f, 1.0f, 0.0f);
+		top_bush.draw();
+		glPopMatrix();
+	}
+}
+
+void MyGLWidget::draw_parterre()
+{
+	int u_num = 16;
+	GLfloat* base_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* base_i = new GLuint[6 * u_num];
+	get_cylinder_v_i(1.0f, 1.0f, u_num, base_v, base_i);
+	GLfloat* basetop_v = new GLfloat[(u_num + 2) * 8];
+	GLuint* basetop_i = new GLuint[3 * u_num];
+	get_cycle_v_i(1.0f, u_num, basetop_v, basetop_i);
+
+	char path_base[] = "pics\\水泥路.png";
+	object base(base_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, base_i, sizeof(GLuint) * 6 * u_num, path_base);
+	char path_basetop[] = "pics\\水泥路.png";
+	object top_base(basetop_v, sizeof(GLfloat) * (u_num + 2) * 8, basetop_i, sizeof(GLuint) * 3 * u_num, path_basetop);
+	//至善
+	glPushMatrix();
+	glTranslatef(4.0f, 0.0f, 0.0f);
+	r_s_r_set_matrix(2.1f, 0.1f, 2.1f, 0.0f, 0.0f, 1.0f, 0.0f);
+	base.draw();
+	glTranslatef(0.0f, 0.1f, 0.0f);
+	r_s_r_set_matrix(2.1f, 0.1f, 2.1f, 0.0f, 0.0f, 1.0f, 0.0f);
+	top_base.draw();
+	glPopMatrix();
+
+	GLfloat* grass_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* grass_i = new GLuint[6 * u_num];
+	get_cylinder_v_i(1.0f, 1.0f, u_num, grass_v, grass_i);
+	GLfloat* grasstop_v = new GLfloat[(u_num + 2) * 8];
+	GLuint* grasstop_i = new GLuint[3 * u_num];
+	get_cycle_v_i(1.0f, u_num, grasstop_v, grasstop_i);
+
+	char path_grass[] = "pics\\bush.png";
+	object grass(grass_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, grass_i, sizeof(GLuint) * 6 * u_num, path_grass);
+	char path_grasstop[] = "pics\\bush.png";
+	object top_grass(grasstop_v, sizeof(GLfloat) * (u_num + 2) * 8, grasstop_i, sizeof(GLuint) * 3 * u_num, path_grasstop);
+	//至善
+	glPushMatrix();
+	glTranslatef(4.0f, 0.2f, 0.0f);
+	r_s_r_set_matrix(2.0f, 0.1f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	grass.draw();
+	glTranslatef(0.0f, 0.1f, 0.0f);
+	r_s_r_set_matrix(2.0f, 0.1f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	top_grass.draw();
+	glPopMatrix();
+}
+
+void MyGLWidget::draw_trees()
+{
+	int u_num = 16;
+	GLfloat* base_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* base_i = new GLuint[6 * u_num];
+	get_cylinder_v_i(1.0f, 1.0f, u_num, base_v, base_i);
+	GLfloat* basetop_v = new GLfloat[(u_num + 2) * 8];
+	GLuint* basetop_i = new GLuint[3 * u_num];
+	get_cycle_v_i(1.0f, u_num, basetop_v, basetop_i);
+
+	char path_base[] = "pics\\树干.png";
+	object base(base_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, base_i, sizeof(GLuint) * 6 * u_num, path_base);
+	char path_basetop[] = "pics\\树干.png";
+	object top_base(basetop_v, sizeof(GLfloat) * (u_num + 2) * 8, basetop_i, sizeof(GLuint) * 3 * u_num, path_basetop);
+
+	GLfloat* grass_v = new GLfloat[2 * (u_num + 1) * 8];
+	GLuint* grass_i = new GLuint[6 * u_num];
+	get_cylinder_v_i(1.0f, 1.0f, u_num, grass_v, grass_i);
+	GLfloat* grasstop_v = new GLfloat[(u_num + 2) * 8];
+	GLuint* grasstop_i = new GLuint[3 * u_num];
+	get_cycle_v_i(1.0f, u_num, grasstop_v, grasstop_i);
+
+	char path_grass[] = "pics\\bush.png";
+	object grass(grass_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, grass_i, sizeof(GLuint) * 6 * u_num, path_grass);
+	char path_grasstop[] = "pics\\bush.png";
+	object top_grass(grasstop_v, sizeof(GLfloat) * (u_num + 2) * 8, grasstop_i, sizeof(GLuint) * 3 * u_num, path_grasstop);
+	GLfloat pos[] = {
+						1.0f,-2.0f,
+						1.0f,-1.0f,
+						1.0f, 0.0f,
+						1.0f, 1.0f,
+						1.0f, 2.0f,
+						1.0f, 3.0f,
+						1.0f, 4.0f,
+						1.0f, 5.0f,
+						-1.0f, -2.0f,
+						-1.0f, -3.0f,
+						-1.0f, -4.0f,
+						-1.0f, -5.0f,
+						-1.0f, -1.0f,
+						-1.0f, 2.0f,
+						-1.0f, 3.0f,
+						-1.0f, 4.0f,
+						-1.0f, 5.0f
+	};
+
+	for (int i = 0; i < sizeof(pos) / sizeof(int) / 2;i++)
+	{
+		GLfloat x = pos[2 * i];
+		GLfloat z = pos[2 * i + 1];
+		glPushMatrix();
+		glTranslatef(x, 0.0f, z);
+		r_s_r_set_matrix(0.1f, 0.5f, 0.1f, 0.0f, 0.0f, 1.0f, 0.0f);
+		base.draw();
+		glTranslatef(0.0f, 0.5f, 0.0f);
+		r_s_r_set_matrix(0.1f, 0.5f, 0.1f, 0.0f, 0.0f, 1.0f, 0.0f);
+		top_base.draw();
+		glPopMatrix();
+		glPushMatrix();
+		glTranslatef(x, 0.55f, z);
+		r_s_r_set_matrix(0.5f, 0.15f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+		grass.draw();
+		glTranslatef(0.0f, 0.15f, 0.0f);
+		r_s_r_set_matrix(0.5f, 0.15f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+		top_grass.draw();
+		glPopMatrix();
+		glPushMatrix();
+		glTranslatef(x, 0.75f, z);
+		r_s_r_set_matrix(0.3f, 0.2f, 0.3f, 0.0f, 0.0f, 1.0f, 0.0f);
+		grass.draw();
+		glTranslatef(0.0f, 0.2f, 0.0f);
+		r_s_r_set_matrix(0.3f, 0.2f, 0.3f, 0.0f, 0.0f, 1.0f, 0.0f);
+		top_grass.draw();
+		glPopMatrix();
+		glPushMatrix();
+		glTranslatef(x, 1.0f, z);
+		r_s_r_set_matrix(0.15f, 0.22f, 0.15f, 0.0f, 0.0f, 1.0f, 0.0f);
+		grass.draw();
+		glTranslatef(0.0f, 0.22f, 0.0f);
+		r_s_r_set_matrix(0.15f, 0.12f, 0.15f, 0.0f, 0.0f, 1.0f, 0.0f);
+		top_grass.draw();
+		glPopMatrix();
+	}
+}
+
+void MyGLWidget::draw_skybox() {
+	GLfloat skybox_top_v[] = {
+		// positions          // colors           // texture coords
+		 10.0f,  10.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		 10.0f,  10.0f,10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // bottom right
+		-10.0f,  10.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+		-10.0f,  10.0f,-10.0f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f  // top left 
+	};
+
+	GLuint skybox_top_i[] = {
+	   3, 1, 0, // first triangle
+	   3, 2, 1  // second triangle
+	};
+
+	char path_top[] = "pics\\skybox_top.png";
+	object skybox_top(skybox_top_v, sizeof(skybox_top_v), skybox_top_i, sizeof(skybox_top_i), path_top);
+	skybox_top.draw();
+
+	GLfloat skybox_side_v[] = {
+		// positions          // colors           // texture coords
+		-10.0f,  10.0f,-10.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		-10.0f,  0.0f,-10.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+		-10.0f,  0.0f,10.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+		-10.0f,  10.0f,10.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
+	};
+
+	GLuint skybox_side_i[] = {
+	   0, 1, 3, // first triangle
+	   1, 2, 3  // second triangle
+	};
+
+	char path_front[] = "pics\\skybox_front.png";
+	object skybox_front(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_front);
+	r_t_set_matrix(0.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	skybox_front.draw();
+
+	char path_right[] = "pics\\skybox_right.png";
+	object skybox_right(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_right);
+	r_t_set_matrix(-90.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	skybox_right.draw();
+
+	char path_back[] = "pics\\skybox_back.png";
+	object skybox_back(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_back);
+	r_t_set_matrix(180.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	skybox_back.draw();
+
+	char path_left[] = "pics\\skybox_left.png";
+	object skybox_left(skybox_side_v, sizeof(skybox_side_v), skybox_side_i, sizeof(skybox_side_i), path_left);
+	r_t_set_matrix(90.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	skybox_left.draw();
+}
+
 
 void MyGLWidget::paintGL()
 {
@@ -706,13 +1092,18 @@ void MyGLWidget::paintGL()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	set_matrix();
-	//draw_skybox();
+
 	draw_map();
-	glPushMatrix();
+	
 	draw_roadside();
 	draw_buildings();
 	draw_gate();
-	draw_plate(4, 6.0f, 2.0f, -2.0f, 1);
+	draw_trees();
+	draw_parterre();
+	draw_bush();
+	//draw_skybox();
+	//turn_p(2, 1, 1, 1);
+	//move_p(2, 2, 1, 1);
 }
 
 void MyGLWidget::resizeGL(int width, int height)
