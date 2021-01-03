@@ -661,11 +661,14 @@ void MyGLWidget::turn_p(GLuint number, GLint dir) {
 	glPopMatrix();
 	glPopMatrix();
 	angle += 90.0f / 5;
+	if (abs(angle - 90.0f) < 1e-3) {
+		angle = 0.0f;
+	}
 }
 
 void MyGLWidget::move_p(GLuint number, GLint dir, GLfloat x, GLfloat z) {
 	static GLfloat step = 0.0f;
-	GLfloat angle = (dir - 1) * 90.0f;
+	GLfloat angle = (dir - 2) * 90.0f;
 	GLfloat height = - step * step + step;
 	GLfloat offset = 0.20f;
 	GLfloat x_dir[5] = { 0.0f, -1.0f, 0.0f, 1.0f, 0.0f};
@@ -705,8 +708,7 @@ void MyGLWidget::paintGL()
 	draw_roadside();
 	draw_buildings();
 	draw_gate();
-	//turn_p();
-	//move_p(2, 2, 0, 0);
+	move_p(2, 2, 0, 0);
 }
 
 void MyGLWidget::resizeGL(int width, int height)
