@@ -5,7 +5,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 
-class object : protected QOpenGLExtraFunctions {
+class object : public QOpenGLWidget, protected QOpenGLExtraFunctions {
 public:
 	object(GLfloat* vertices, GLuint vertices_size, GLuint* indices, GLuint indices_size, char* path);
 	~object();
