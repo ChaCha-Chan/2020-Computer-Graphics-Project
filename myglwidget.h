@@ -31,15 +31,18 @@ protected:
     void set_alpha(GLfloat alpha);
     void set_matrix();
     void draw_map();
-    void draw_skybox();
     void draw_roadside();
     void get_cylinder_v_i(GLfloat r, GLfloat h, GLuint u_num, GLfloat* temp_v, GLuint* temp_i);
     void get_cycle_v_i(GLfloat r, GLuint u_num, GLfloat* temp_v, GLuint* temp_i);
     void draw_gate();
+    void draw_buildings();
     void r_t_set_matrix(GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, GLfloat t1, GLfloat t2, GLfloat t3);
+    void s_r_t_set_matrix(GLfloat s1, GLfloat s2, GLfloat s3, GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, GLfloat t1, GLfloat t2, GLfloat t3);
+    void r_s_r_set_matrix(GLfloat s1, GLfloat s2, GLfloat s3, GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3);
     void paintGL();
     void resizeGL(int width, int height);
-    
+    void draw_plate(GLint target_num, GLfloat x, GLfloat y, GLfloat z, GLint direction);
+    void draw_skybox();
     QTimer* timer;
     GLuint shader_program;
 };
