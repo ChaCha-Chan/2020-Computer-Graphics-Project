@@ -32,6 +32,8 @@ protected:
     void set_matrix();
     void draw_map();
     void draw_roadside();
+    void get_cylinder_v_i(GLfloat r, GLfloat h, GLuint u_num, GLfloat* temp_v, GLuint* temp_i);
+    void get_cycle_v_i(GLfloat r, GLuint u_num, GLfloat* temp_v, GLuint* temp_i);
     void draw_gate();
     void r_t_set_matrix(GLfloat r0, GLfloat r1, GLfloat r2, GLfloat r3, GLfloat t1, GLfloat t2, GLfloat t3);
     void paintGL();

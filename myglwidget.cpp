@@ -77,12 +77,12 @@ void MyGLWidget::set_matrix() {
 	glLoadIdentity();
 	GLfloat modelview_matrix[16];
 	//gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	gluLookAt(18.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(0.0f, 5.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 
 	//设置不透明度
-	set_alpha(0.5f);
+	set_alpha(1.0f);
 }
 
 void MyGLWidget::draw_map() {
@@ -197,28 +197,101 @@ void MyGLWidget::draw_roadside() {
 	road_side4.draw();
 
 }
-void MyGLWidget::draw_gate() {
-	static bool open_flag = FALSE;
-	//闸机两侧
-	GLfloat side1_v[20 * 8];
-	for (int i = 0; i < 20 * 8; i += 8) {
-		side1_v[i] = cos(PI / 10 * );
-		if (i < 10 * 8) {
-			side1_v[i + 1] = 0.0f;
+
+void MyGLWidget::get_cylinder_v_i(GLfloat r, GLfloat h, GLuint u_num, GLfloat* temp_v, GLuint* temp_i){
+	for (int i = 0; i < 2 * u_num; i++) {
+		if (i < u_num) {
+			temp_v[i * 8] = r * cos(PI * i * 2 / u_num);
+			temp_v[i * 8 + 1] = h;
+			temp_v[i * 8 + 2] = r * sin(PI * i * 2 / u_num);
+			temp_v[i * 8 + 6] = 1.0f * i / u_num;
+			temp_v[i * 8 + 7] = 1.0f;
 		}
 		else {
-			side1_v[i + 1] = 0.6f;
+			temp_v[i * 8] = r * cos(PI * (i - u_num) * 2 / u_num);
+			temp_v[i * 8 + 1] = 0.0f;
+			temp_v[i * 8 + 2] = r * sin(PI * (i - u_num) * 2 / u_num);
+			temp_v[i * 8 + 6] = 1.0f * (i - u_num) / u_num;
+			temp_v[i * 8 + 7] = 0.0f;
 		}
-		side1_v[i + 2] = sin(P1 / 20);
+		temp_v[i * 8 + 3] = 1.0f;
+		temp_v[i * 8 + 4] = 1.0f;
+		temp_v[i * 8 + 5] = 1.0f;
 	}
+	for (int i = 0; i < 6 * u_num; i += 6) {
+		if (i == 6 * u_num - 6) {
+			temp_i[i + 1] = 0;
+		}
+		else {
+			temp_i[i + 1] = i / 6 + 1;
+		}
+		temp_i[i] = i / 6;
+		temp_i[i + 2] = temp_i[i] + u_num;
+		temp_i[i + 3] = temp_i[i + 1];
+		temp_i[i + 4] = temp_i[i + 1] + u_num;
+		temp_i[i + 5] = temp_i[i + 2];	
+	}
+}
+//由于多了个圆心，所以应该有u_num + 1个点
+void MyGLWidget::get_cycle_v_i(GLfloat r, GLuint u_num, GLfloat* temp_v, GLuint* temp_i) {
+	for (int i = 0; i < u_num; i++) {
+		temp_v[i * 8] = r * cos(PI * i * 2 / u_num);
+		temp_v[i * 8 + 1] = 0.0f;
+		temp_v[i * 8 + 2] = - r * sin(PI * i * 2 / u_num);
+		temp_v[i * 8 + 3] = 1.0f;
+		temp_v[i * 8 + 4] = 1.0f;
+		temp_v[i * 8 + 5] = 1.0f;
+		temp_v[i * 8 + 6] = cos(PI * i * 2 / u_num) / 2 + 0.5f;
+		temp_v[i * 8 + 7] = sin(PI * i * 2 / u_num) / 2 + 0.5f;
+	}
+	//圆心
+	temp_v[u_num * 8] = 0.0f;
+	temp_v[u_num * 8 + 1] = 0.0f;
+	temp_v[u_num * 8 + 2] = 0.0f;
+	temp_v[u_num * 8 + 3] = 1.0f;
+	temp_v[u_num * 8 + 4] = 1.0f;
+	temp_v[u_num * 8 + 5] = 1.0f;
+	temp_v[u_num * 8 + 6] = 0.5f;
+	temp_v[u_num * 8 + 7] = 0.5f;
+
+	for (int i = 0; i < u_num; i++) {
+		if (i == u_num - 1) {
+			temp_i[i * 3 + 1] = 0;
+		}
+		else {
+			temp_i[i * 3 + 1] = i + 1;
+		}
+		temp_i[i * 3] = i;
+		temp_i[i * 3 + 2] = u_num;
+	}
+}
+
+void MyGLWidget::draw_gate() {
+	static bool open_flag = FALSE;
+	//估计要有四个状态 正在开 正在关 开 关
+	//闸机两侧
+	int u_num = 4;
+	GLfloat* side_v = new GLfloat[2 * u_num * 8];
+	GLuint* side_i = new GLuint[6 * u_num];
+	get_cylinder_v_i(0.3f, 0.6f, 4, side_v, side_i);
+	char path1[] = "pics\\水泥路.png";
+	object side1(side_v, sizeof(GLfloat) * 2 * u_num * 8, side_i, sizeof(GLuint) * 6 * u_num, path1);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, 0.0f);
+	//side1.draw();
+
+	GLfloat* top_v = new GLfloat[(u_num + 1) * 8];
+	GLuint* top_i = new GLuint[3 * u_num];
+	get_cycle_v_i(0.3f, 4, top_v, top_i);
+	object top1(top_v, sizeof(GLfloat) * (u_num + 1) * 8, top_i, sizeof(GLuint) * 3 * u_num, path1);
+	r_t_set_matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	top1.draw();
 }
 
 void MyGLWidget::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -227,6 +300,7 @@ void MyGLWidget::paintGL()
 
 	draw_map();
 	draw_roadside();
+	draw_gate();
 }
 
 void MyGLWidget::resizeGL(int width, int height)
