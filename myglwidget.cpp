@@ -77,7 +77,7 @@ void MyGLWidget::set_matrix() {
 	glLoadIdentity();
 	GLfloat modelview_matrix[16];
 	//gluLookAt(0.0f, 5.0f, 15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	gluLookAt(-15.0f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(0.0f, 7.5f, 9.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "modelview"), 1, GL_FALSE, modelview_matrix);
 
@@ -608,6 +608,7 @@ void MyGLWidget::draw_buildings() {
 	//Õº Èπ›
 	char path_lib2[] = "pics\\Õº Èπ›2.png";
 	object lib2(building_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, building_i, sizeof(GLuint) * 6 * u_num, path_lib2);
+	object lib_top(top_v, (u_num + 2) * 8, top_i, 3 * u_num, path_lib2);
 	char path_lib3[] = "pics\\Õº Èπ›3.png";
 	object lib3(building_v, sizeof(GLfloat) * 2 * (u_num + 1) * 8, building_i, sizeof(GLuint) * 6 * u_num, path_lib3);
 	char path_lib4[] = "pics\\Õº Èπ›4.png";
@@ -650,9 +651,11 @@ void MyGLWidget::draw_buildings() {
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, 1.0f);
 	r_s_r_set_matrix(2.0f, 0.2f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib_top.draw();
 	lib2.draw();
 	glTranslatef(0.0f, 1.4f, 0.0f);
 	r_s_r_set_matrix(2.0f, 0.2f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+	lib_top.draw();
 	lib2.draw();
 	glPopMatrix();
 
@@ -842,6 +845,43 @@ void MyGLWidget::move_p(GLuint number, GLint dir, GLfloat x, GLfloat z) {
 		step = 0.0f;
 	}
 }
+/*
+void MyGLWidget::move_p(GLuint number, GLint dir, GLfloat x, GLfloat z) {
+	static GLfloat step = 0.0f;
+	GLfloat angle = (dir - 2) * 90.0f;
+	GLfloat height = -step * step + step;
+	GLfloat offset = 0.20f;
+	GLfloat x_dir[5] = { 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
+	GLfloat z_dir[5] = { 0.0f,  0.0f, 1.0f, 0.0f, -1.0f };
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	if (number == 1) {
+		glTranslatef(offset, 0.0f, offset);
+	}
+	else {
+		glTranslatef(-offset, 0.0f, -offset);
+	}
+	if (is_move) {
+		glPushMatrix();
+		glTranslatef(x + x_dir[dir] * step, height, z + z_dir[dir] * step);
+		glRotatef(angle, 0.0f, 1.0f, 0.0f);
+		draw_p(number);
+		glPopMatrix();
+		step += 0.20f;
+		if (abs(step - 1.0f) < 1e-3) {
+			step = 0.0f;
+		}
+	}
+	else {
+		glPushMatrix();
+		glTranslatef(x , 0.0f, z);
+		glRotatef(angle, 0.0f, 1.0f, 0.0f);
+		draw_p(number);
+		glPopMatrix();
+	}
+	glPopMatrix();
+}
+*/
 
 void MyGLWidget::paintGL()
 {
