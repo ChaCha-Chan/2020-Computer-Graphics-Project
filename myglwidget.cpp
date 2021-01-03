@@ -651,12 +651,14 @@ void MyGLWidget::draw_buildings() {
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, 1.0f);
 	r_s_r_set_matrix(2.0f, 0.2f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
-	lib_top.draw();
 	lib2.draw();
-	glTranslatef(0.0f, 1.4f, 0.0f);
+	glTranslatef(0.0f, 0.2f, 0.0f);
+	lib_top.draw();
+	glTranslatef(0.0f, 1.2f, 0.0f);
 	r_s_r_set_matrix(2.0f, 0.2f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f);
-	lib_top.draw();
 	lib2.draw();
+	glTranslatef(0.0f, 0.2f, 0.0f);
+	lib_top.draw();
 	glPopMatrix();
 
 	glPushMatrix();
