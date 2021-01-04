@@ -1,9 +1,10 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
+layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoord;
 
-out vec3 ourColor;
+out vec3 frag_pos;
+out vec3 frag_normal;
 out vec2 TexCoord;
 
 uniform mat4 modelview;
@@ -12,6 +13,7 @@ uniform mat4 projection;
 void main()
 {
 	gl_Position = projection * modelview * vec4(aPos, 1.0f);
-	ourColor = aColor;
+	frag_pos = vec3(modelview * vec4(aPos, 1.0f));
+	frag_normal = normalize(mat3(transpose(inverse(modelview))) * aNormal);
 	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 }
